@@ -1,0 +1,74 @@
+---
+title: 'Bellabeat Exploratory Analysis'
+author: "Alexandra Lazareva"
+date: "2026-05-05"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Introduction
+The goal of this case study is to analyze smart device fitness data to unlock new growth opportunities for the company. By analyzing how consumers use non-Bellabeat smart devices (specifically Fitbit data), we aim to:
+
+Identify key trends in smart device usage.
+
+Analyze how these trends apply to Bellabeat customers.
+
+Provide high-level recommendations for Bellabeat’s marketing strategy based on these insights.
+
+## Analysis and Visualization
+
+In this section, we transition from data cleaning to exploring relationships between key variables. Our primary focus is the correlation between daily movement and energy expenditure.
+
+### Relationship between Steps and Calories
+We want to test the hypothesis that higher step counts significantly increase calorie burn, which is a core value proposition for Bellabeat's tracking features.
+
+```{r analysis_viz, message=FALSE, warning=FALSE}
+# Load necessary libraries
+library(tidyverse)
+library(ggplot2)
+
+# Load the cleaned data (ensure the file is in your project folder)
+daily_activity <- read.csv("daily_activity.csv")
+
+# Create a scatter plot with a trend line
+ggplot(data = daily_activity, aes(x = TotalSteps, y = Calories)) +
+  geom_point(aes(color = TotalSteps), alpha = 0.5) + # Add transparency to handle overplotting
+  geom_smooth(method = "lm", color = "coral") +     # Linear regression line
+  scale_color_gradient(low = "blue", high = "red") + # Visualizing intensity
+  labs(
+    title = "Correlation: Daily Steps vs. Calories Burned",
+    subtitle = "A strong positive correlation supports the drive for increased daily activity",
+    x = "Total Steps",
+    y = "Calories Burned",
+    caption = "Data Source: Fitbit Fitness Tracker Data"
+  ) +
+  theme_minimal()
+```
+
+### User Activity Categorization
+To provide better marketing recommendations, we categorize users based on their average activity levels. This helps Bellabeat target specific segments with personalized notifications.
+
+```{r user_segments}
+# Categorizing users by average steps
+user_segments <- daily_activity %>%
+  group_by(Id) %>%
+  summarise(avg_steps = mean(TotalSteps)) %>%
+  mutate(user_type = case_when(
+    avg_steps < 5000 ~ "Sedentary",
+    avg_steps >= 5000 & avg_steps < 10000 ~ "Active",
+    avg_steps >= 10000 ~ "Very Active"
+  ))
+
+# Displaying the first few rows of our new table
+head(user_segments)
+
+# Calculating the Pearson correlation between steps and calories
+cor_result <- cor(daily_activity$TotalSteps, daily_activity$Calories)
+print(cor_result)
+```
+
+
+### Key Findings
+1. **Positive Correlation:** As expected, there is a clear positive linear relationship between steps and calories.
+2. **Engagement Gap:** A significant portion of the data points cluster below 7,500 steps, suggesting that many users struggle to reach the "Active" threshold.
